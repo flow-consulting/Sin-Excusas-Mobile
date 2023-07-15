@@ -1,4 +1,4 @@
-// import firestore from '@react-native-firebase/firestore';
+// src/services/FirestoreManager.ts
 // import { DatabaseManager } from './DatabaseManager'; // Make sure to use the correct path to the file
 // import { generateId } from './../utils/IdManager'; // Make sure to use the correct path to the file
 
