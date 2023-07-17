@@ -1,4 +1,4 @@
-// src/screens/FriendGroups/PasanakusScreen.tsx
+// src/screens/Shared/PasanakusScreen.tsx
 import React from 'react';
 import {Text, View} from 'react-native';
 

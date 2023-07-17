@@ -1,16 +1,16 @@
 // src/navigation/FriendGroups/FriendGroupsTabs.tsx
-import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import ServicesScreen from '../../screens/FriendGroups/ServicesScreen';
-import PasanakusScreen from '../../screens/FriendGroups/PasanakusScreen';
+import React from 'react';
 import FriendGroupsScreen from '../../screens/FriendGroups/FriendGroupsScreen';
+import PasanakusScreen from '../../screens/Shared/PasanakusScreen';
+import AdStack from '../Ad/AdStack';
 
 const Tab = createBottomTabNavigator();
 
 const FriendGroupsTabs = () => (
   <Tab.Navigator>
     <Tab.Screen name="FriendGroupsScreen" component={FriendGroupsScreen} />
-    <Tab.Screen name="ServicesScreen" component={ServicesScreen} />
+    <Tab.Screen name="AdStack" component={AdStack} />
     <Tab.Screen name="PasanakusScreen" component={PasanakusScreen} />
   </Tab.Navigator>
 );
