@@ -1,0 +1,193 @@
+Bing, por favor ayudame con mi proyecto de react native:
+src
+├── components
+│   └── NextScreenButton.tsx
+├── contexts
+│   ├── AuthContext.tsx
+│   ├── NeighborhoodContext.tsx
+│   └── NeighborhoodProvider.tsx
+├── hooks
+│   ├── useAuth.ts
+│   └── useNeighborhood.ts
+├── i18n
+│   └── locales
+├── interfaces
+│   ├── AuthContextValue.ts
+│   ├── DatabaseManager.ts
+│   ├── Neighborhood.ts
+│   └── User.ts
+├── navigation
+│   ├── Ad
+│   │   └── AdStack.tsx
+│   ├── Auth
+│   │   └── AuthStack.tsx
+│   ├── FriendGroups
+│   │   ├── FriendGroupsStack.tsx
+│   │   └── FriendGroupsTabs.tsx
+│   ├── Home
+│   │   └── HomeDrawer.tsx
+│   ├── Intro
+│   │   └── IntroStack.tsx
+│   ├── Neighborhood
+│   │   ├── NeighborhoodStack.tsx
+│   │   └── NeighborhoodTabs.tsx
+│   ├── Profile
+│   │   └── ProfileStack.tsx
+│   └── index.tsx
+├── screens
+│   ├── Ad
+│   │   ├── AdDetailsScreen.tsx
+│   │   ├── CreateAdScreen.tsx
+│   │   └── ReportAdScreen.tsx
+│   ├── Auth
+│   │   ├── LoginScreen.tsx
+│   │   ├── RegisterScreen.tsx
+│   │   └── WelcomeScreen.tsx
+│   ├── FriendGroups
+│   │   ├── CreateFriendGroupScreen.tsx
+│   │   ├── FriendGroupsListScreen.tsx
+│   │   └── FriendGroupsScreen.tsx
+│   ├── Home
+│   │   └── HomeScreen.tsx
+│   ├── Intro
+│   │   └── IntroScreen.tsx
+│   ├── Neighborhood
+│   │   ├── AlquicashScreen.tsx
+│   │   ├── CreateNeighborhoodScreen.tsx
+│   │   ├── NeighborhoodScreen.tsx
+│   │   └── VendotodoScreen.tsx
+│   ├── Profile
+│   │   ├── EditProfileScreen.tsx
+│   │   └── ProfileScreen.tsx
+│   └── Shared
+│       ├── PasanakusScreen.tsx
+│       └── ServicesScreen.tsx
+├── services
+│   ├── AxiosManager.ts
+│   ├── FirestoreManager.ts
+│   ├── FriendGroupManager.ts
+│   └── NeighborhoodManager.ts
+└── utils
+    └── IdManager.ts
+
+26 directories, 44 files
+Necesito que me ayudes con algunas modificaciones y a mejorar el proyecto conservandolos principios de SOLID, DRY, KISS, YAGNI y que sigamos la Documentación oficial de React Native, Documentación oficial de TypeScript, Guías de estilo para TypeScript, React/JSX Style Guide. Todos los ejemplos de codigo que me muestres deben ser enteramente en ingles, me refiero a nombres de las variables, comentarios de linea, logs, etc, No podemos usar español. Hazme saber si tenemos código repetido, redundante o innecesario en mis distintos contexts bing.
+import React from 'react';
+import {AuthProvider} from './src/contexts/AuthContext';
+import NeighborhoodProvider from './src/contexts/NeighborhoodProvider';
+import AppNavigator from './src/navigation';
+const App = () => {
+  return (
+    <AuthProvider><NeighborhoodProvider><AppNavigator /></NeighborhoodProvider></AuthProvider>
+  );
+};
+export default App;
+import {NavigationContainer} from '@react-navigation/native';
+import React, {useContext} from 'react';
+import AuthContext from '../contexts/AuthContext';
+import AuthStack from './Auth/AuthStack';
+import HomeDrawer from './Home/HomeDrawer';
+const AppNavigator = () => {
+  const {isLoggedIn} = useContext(AuthContext);
+  return (
+    <NavigationContainer>
+      {isLoggedIn ? <HomeDrawer /> : <AuthStack />}
+    </NavigationContainer>
+  );
+};
+export default AppNavigator;
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useContext } from 'react';
+import AuthContext from '../contexts/AuthContext';
+import dbManager from '../interfaces/DatabaseManager';
+import { User } from '../interfaces/User';
+import { NeighborhoodManager } from '../services/NeighborhoodManager';
+export const useAuth = () => {
+  const {setIsLoggedIn, setUserId} = useContext(AuthContext);
+  const login = async (whatsAppNumber: string) => {
+    try {
+            const user = await dbManager.get(
+        'users',
+        'whatsAppNumber',
+        whatsAppNumber,
+      );
+            
+      if (user) {
+                await AsyncStorage.setItem('user', JSON.stringify(user));
+                setUserId(user.id);
+        setIsLoggedIn(true);
+                return user;
+      } else {
+                return null;
+      }
+    } catch (error) {
+            return null;
+    }
+  };
+  const register = async (
+    fullName: string,
+    whatsAppNumber: string,
+    isAdmin: boolean,
+  ) => {
+                
+        const neighborhoodManager = new NeighborhoodManager();
+        const newUser: User & {neighborhoodId?: string; id?: string} = {
+      fullName,
+      whatsAppNumber,
+      isAdmin,
+    };
+        const neighborhoodId = await neighborhoodManager.assignNeighborhood(
+      newUser,
+    );
+        newUser.neighborhoodId = neighborhoodId;
+        const userId = await dbManager.add('users', newUser);
+        newUser.id = userId;
+        setUserId(newUser.id);
+        await AsyncStorage.setItem('user', JSON.stringify(newUser));
+        setIsLoggedIn(true);
+  };
+  const logout = async () => {
+        
+        await AsyncStorage.removeItem('user');
+        setIsLoggedIn(false);
+  };
+  return {login, register, logout};
+};
+import { useContext } from 'react';
+import NeighborhoodContext from '../contexts/NeighborhoodContext';
+import dbManager from '../interfaces/DatabaseManager';
+import { User } from '../interfaces/User';
+export const useNeighborhood = () => {
+  const {setNeighborhoodId} = useContext(NeighborhoodContext);
+  const assignNeighborhood = async (user: User) => {
+        
+    if (!user) {
+      return;
+    }
+        const firstDigit = user.whatsAppNumber[0];
+        
+        const neighborhoods = await dbManager.getAll('neighborhoods');
+        
+        const neighborhood = neighborhoods.find(
+      (neighborhood) => neighborhood.name[0] === firstDigit,
+    );
+        
+    if (!neighborhood) {
+      return;
+    }
+            setNeighborhoodId('1689624325154-GCV-rpbxviq8b');
+  };
+  const createNeighborhood = async (name: string, createdBy: string) => {
+        const newNeighborhood = {
+      name,
+      createdAt: new Date().toISOString(),
+      createdBy,
+    };
+        await dbManager.add('neighborhoods', newNeighborhood);
+  };
+  const deleteNeighborhood = async (id: string) => {
+        await dbManager.delete('neighborhoods', id);
+        setNeighborhoodId(null);
+  };
+  return {assignNeighborhood, createNeighborhood, deleteNeighborhood};
+};

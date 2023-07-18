@@ -1,23 +1,34 @@
 // src/screens/Shared/ServicesScreen.tsx
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
 import {FlatList, Text, TouchableOpacity, View} from 'react-native';
-import {AxiosManager} from '../../services/AxiosManager';
+import {useAuth} from '../../hooks/useAuth';
+import dbManager from '../../interfaces/DatabaseManager';
 
 const ServicesScreen = () => {
   const [ads, setAds] = useState([]);
   const navigation = useNavigation();
+  const {user} = useAuth();
+  const userId = user?.id;
 
   const fetchAds = useCallback(async () => {
-    // Create an instance of AxiosManager
-    const axiosManager = new AxiosManager();
-
     // Get all ads from the database
-    const data = await axiosManager.getAll('ads');
+    const data = await dbManager.getAll('ads');
 
-    // Update state with the fetched ads
-    setAds(data);
-  }, []);
+    // Get the ID of the selected friend group from AsyncStorage
+    const friendGroupId = await AsyncStorage.getItem('selectedFriendGroupId');
+
+    // Filter ads based on the provided parameters
+    const filteredAds = data.filter(
+      ad =>
+        (!userId || ad.userId === userId) &&
+        (!friendGroupId || ad.friendGroupId === friendGroupId),
+    );
+
+    // Update state with the filtered ads
+    setAds(filteredAds);
+  }, [userId]);
 
   useFocusEffect(
     useCallback(() => {

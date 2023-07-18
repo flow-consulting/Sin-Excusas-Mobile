@@ -1,9 +1,8 @@
 // src/screens/Ad/AdDetailsScreen.tsx
-// src/screens/Shared/AdDetailScreen.tsx
 import {RouteProp, useRoute} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {Text, View} from 'react-native';
-import {AxiosManager} from '../../services/AxiosManager';
+import dbManager from '../../interfaces/DatabaseManager';
 
 type AdDetailRouteProp = RouteProp<
   {AdDetailsScreen: {adId: string}},
@@ -19,11 +18,8 @@ const AdDetailScreen = () => {
       // Get the ad ID from the route params
       const adId = route.params.adId;
 
-      // Create an instance of AxiosManager
-      const axiosManager = new AxiosManager();
-
       // Get the ad details from the database
-      const data = await axiosManager.get('ads', adId);
+      const data = await dbManager.get('ads', 'id', adId);
 
       // Update state with the fetched ad details
       setAd(data);

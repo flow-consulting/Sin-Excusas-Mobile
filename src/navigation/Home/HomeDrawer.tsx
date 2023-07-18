@@ -1,10 +1,10 @@
 // src/navigation/Home/HomeDrawer.tsx
-import React from 'react';
 import {createDrawerNavigator} from '@react-navigation/drawer';
+import React from 'react';
 import HomeScreen from '../../screens/Home/HomeScreen';
-import ProfileStack from '../Profile/ProfileStack';
+import FriendGroupsStack from '../FriendGroups/FriendGroupsStack';
 import NeighborhoodTabs from '../Neighborhood/NeighborhoodTabs';
-import FriendGroupsTabs from '../FriendGroups/FriendGroupsTabs';
+import ProfileStack from '../Profile/ProfileStack';
 
 const Drawer = createDrawerNavigator();
 
@@ -13,7 +13,7 @@ const HomeDrawer = () => (
     <Drawer.Screen name="HomeScreen" component={HomeScreen} />
     <Drawer.Screen name="ProfileStack" component={ProfileStack} />
     <Drawer.Screen name="NeighborhoodTabs" component={NeighborhoodTabs} />
-    <Drawer.Screen name="FriendGroupsTabs" component={FriendGroupsTabs} />
+    <Drawer.Screen name="FriendGroupsStack" component={FriendGroupsStack} />
   </Drawer.Navigator>
 );
 

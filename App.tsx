@@ -1,8 +1,14 @@
+// App.tsx
 import React from 'react';
+import {AuthProvider} from './src/contexts/AuthContext';
 import AppNavigator from './src/navigation';
 
 const App = () => {
-  return <AppNavigator />;
+  return (
+    <AuthProvider>
+      <AppNavigator />
+    </AuthProvider>
+  );
 };
 
 export default App;
