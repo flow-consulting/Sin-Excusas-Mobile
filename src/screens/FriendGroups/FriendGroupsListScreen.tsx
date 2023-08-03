@@ -1,36 +1,43 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// src/screens/FriendGroups/FriendGroupsListScreen.tsx
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import React, {useCallback, useContext, useState} from 'react';
-import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import AuthContext from '../../contexts/AuthContext';
-import dbManager from '../../interfaces/DatabaseManager';
+import React, {useCallback, useState} from 'react';
+import {
+  ClickableText,
+  Container,
+  ListContainer,
+  PrimaryButton,
+} from '../../components';
+import {useAsyncStorage} from '../../hooks/useAsyncStorage';
+import useDatabaseData from '../../hooks/useDatabaseData';
 
 const FriendGroupsListScreen = () => {
   const [friendGroups, setFriendGroups] = useState([]);
   const navigation = useNavigation();
-  const {userId} = useContext(AuthContext);
+  const {getItem: getAsyncStorageItem, setItem: setAsyncStorageItem} =
+    useAsyncStorage();
+  const {query: queryFriendGroups} = useDatabaseData('friend-groups');
 
   const fetchFriendGroups = useCallback(async () => {
-    // Log the value of the userId
-    console.log('UserId:', userId);
+    // Get the user data from local storage
+    const userData = await getAsyncStorageItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
 
-    // Get all friend groups from the database
-    const data = await dbManager.getAll('friend-groups');
+      // Log the value of the userId
+      console.log('FriendGroupsListScreen fetchFriendGroups userId:', user.id);
 
-    // Log the value of the data
-    console.log('Data:', data);
+      // Get friend groups for the current user from the database using the useDatabaseData hook
+      const data = await queryFriendGroups({
+        members: user.id,
+      });
 
-    // Filter friend groups based on the user's friendGroupIds
-    const filteredGroups = data.filter(
-      group => group.members && group.members.includes(userId),
-    );
+      // Log the value of the data
+      console.log('FriendGroupsListScreen fetchFriendGroups data:', data);
 
-    // Log the value of the filtered friend groups
-    console.log('Filtered Friend Groups:', filteredGroups);
-
-    // Update state with the filtered friend groups
-    setFriendGroups(filteredGroups);
-  }, [userId]);
+      // Update state with the fetched friend groups
+      setFriendGroups(data);
+    }
+  }, [getAsyncStorageItem, queryFriendGroups]);
 
   // Call fetchFriendGroups when the screen is focused
   useFocusEffect(
@@ -41,7 +48,7 @@ const FriendGroupsListScreen = () => {
 
   const handleSelectGroup = async group => {
     // Store the ID of the selected friend group in AsyncStorage
-    await AsyncStorage.setItem('selectedFriendGroupId', group.id);
+    await setAsyncStorageItem('selectedFriendGroupId', group.id);
 
     // Navigate to the FriendGroupsTabs and pass the selected group as a parameter
     navigation.navigate('FriendGroupsTabs', {group});
@@ -53,43 +60,19 @@ const FriendGroupsListScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <FlatList
+    <Container>
+      <ListContainer
         data={friendGroups}
-        keyExtractor={item => item.id}
         renderItem={({item}) => (
-          <TouchableOpacity onPress={() => handleSelectGroup(item)}>
-            <Text style={styles.groupName}>{item.name}</Text>
-          </TouchableOpacity>
+          <ClickableText onPress={() => handleSelectGroup(item)}>
+            {item.name}
+          </ClickableText>
         )}
+        keyExtractor={item => item.id}
       />
-      <TouchableOpacity style={styles.createButton} onPress={handleCreateGroup}>
-        <Text style={styles.createButtonText}>Create new group</Text>
-      </TouchableOpacity>
-    </View>
+      <PrimaryButton title="Create new group" onPress={handleCreateGroup} />
+    </Container>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  groupName: {
-    fontSize: 18,
-    marginBottom: 8,
-  },
-  createButton: {
-    backgroundColor: '#4da6ff',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  createButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});
 
 export default FriendGroupsListScreen;

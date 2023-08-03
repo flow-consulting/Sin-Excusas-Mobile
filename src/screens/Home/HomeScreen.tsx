@@ -1,16 +1,12 @@
-// HomeScreen.tsx
+// src/screens/Home/HomeScreen.tsx
 import React from 'react';
-import {Text, View} from 'react-native';
-import {useNeighborhood} from '../../hooks/useNeighborhood';
+import {CustomText, CustomView} from '../../components';
 
 const HomeScreen = () => {
-  const {neighborhoodId} = useNeighborhood();
-  console.log('HomeScreen neighborhoodId:', neighborhoodId);
-
   return (
-    <View>
-      <Text>HomeScreen</Text>
-    </View>
+    <CustomView type="screen">
+      <CustomText type="normal">HomeScreen</CustomText>
+    </CustomView>
   );
 };
 

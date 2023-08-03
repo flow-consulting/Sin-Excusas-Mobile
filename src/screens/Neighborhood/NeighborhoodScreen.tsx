@@ -1,33 +1,38 @@
+// src/screens/Neighborhood/NeighborhoodScreen.tsx
 import {useNavigation} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
-import {Button, Text, View} from 'react-native';
-import {useAuth} from '../../hooks/useAuth';
+import {CustomButton} from '../../components/CustomButton';
+import {CustomText} from '../../components/CustomText';
+import {CustomView} from '../../components/CustomView';
+import {useAsyncStorage} from '../../hooks/useAsyncStorage';
 
 const NeighborhoodScreen = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const navigation = useNavigation();
-  const {user, initializing} = useAuth();
+  const {getItem: getAsyncStorageItem} = useAsyncStorage();
 
   useEffect(() => {
-    if (user) {
-      setIsAdmin(user.isAdmin);
-    }
-  }, [user]);
-
-  if (initializing) {
-    return null;
-  }
+    const init = async () => {
+      const userData = await getAsyncStorageItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        setIsAdmin(user.isAdmin);
+      }
+    };
+    init();
+  }, []);
 
   return (
-    <View>
-      <Text>NeighborhoodScreen</Text>
+    <CustomView type="screen">
+      <CustomText type="normal">NeighborhoodScreen</CustomText>
       {isAdmin && (
-        <Button
+        <CustomButton
+          type="primary"
           title="Create New Neighborhood"
           onPress={() => navigation.navigate('CreateNeighborhoodScreen')}
         />
       )}
-    </View>
+    </CustomView>
   );
 };
 

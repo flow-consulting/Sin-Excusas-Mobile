@@ -1,8 +1,9 @@
 // src/navigation/Ad/AdStack.tsx
 import {useRoute} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-import React from 'react';
-import {useNeighborhood} from '../../hooks/useNeighborhood';
+import React, {useEffect, useState} from 'react';
+import {CustomActivityIndicator} from '../../components';
+import {useAsyncStorage} from '../../hooks/useAsyncStorage';
 import AdDetailsScreen from '../../screens/Ad/AdDetailsScreen';
 import CreateAdScreen from '../../screens/Ad/CreateAdScreen';
 import ReportAdScreen from '../../screens/Ad/ReportAdScreen';
@@ -13,12 +14,31 @@ import ServicesScreen from '../../screens/Shared/ServicesScreen';
 const Stack = createStackNavigator();
 
 const AdStack = () => {
+  const [loading, setLoading] = useState(true);
+  const [neighborhoodId, setNeighborhoodId] = useState<string | null>(null);
   const route = useRoute();
-  const {adType} = route.params;
+  const {adType, context} = route.params;
   console.log('AdStack adType:', adType);
+  const {getItem: getAsyncStorageItem} = useAsyncStorage();
 
-  const {neighborhoodId} = useNeighborhood();
+  useEffect(() => {
+    const init = async () => {
+      // Get the user data from local storage
+      const userData = await getAsyncStorageItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        setNeighborhoodId(user.neighborhoodId);
+      }
+      setLoading(false);
+    };
+    init();
+  }, [getAsyncStorageItem]);
+
   console.log('AdStack neighborhoodId:', neighborhoodId);
+
+  if (loading) {
+    return <CustomActivityIndicator />;
+  }
 
   return (
     <Stack.Navigator>
@@ -40,7 +60,11 @@ const AdStack = () => {
       )}
       {neighborhoodId && adType === 'Services' && (
         <>
-          <Stack.Screen name="ServicesScreen" component={ServicesScreen} />
+          <Stack.Screen
+            name="ServicesScreen"
+            component={ServicesScreen}
+            initialParams={{context}}
+          />
           <Stack.Screen name="CreateAdScreen" component={CreateAdScreen} />
           <Stack.Screen name="ReportAdScreen" component={ReportAdScreen} />
           <Stack.Screen name="AdDetailsScreen" component={AdDetailsScreen} />

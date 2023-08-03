@@ -3,4 +3,5 @@ export interface Neighborhood {
   name: string;
   createdAt: string;
   createdBy: string;
+  color: string;
 }

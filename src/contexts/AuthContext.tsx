@@ -19,7 +19,12 @@ export const AuthProvider: React.FC = ({children}) => {
 
   return (
     <AuthContext.Provider
-      value={{userId, setUserId, isLoggedIn, setIsLoggedIn}}>
+      value={{
+        userId,
+        setUserId,
+        isLoggedIn,
+        setIsLoggedIn,
+      }}>
       {children}
     </AuthContext.Provider>
   );

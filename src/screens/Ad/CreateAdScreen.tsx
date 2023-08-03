@@ -1,119 +1,128 @@
 // src/screens/Ad/CreateAdScreen.tsx
 import {useNavigation, useRoute} from '@react-navigation/native';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import {useAuth} from '../../hooks/useAuth';
-import {useNeighborhood} from '../../hooks/useNeighborhood';
-import dbManager from '../../interfaces/DatabaseManager';
+  CustomButton,
+  CustomFormRow,
+  CustomImagePicker,
+  CustomPickerInputRow,
+  CustomView,
+} from '../../components';
+import {useAsyncStorage} from '../../hooks/useAsyncStorage';
+import useDatabaseData from '../../hooks/useDatabaseData';
 
 const CreateAdScreen = () => {
   const [price, setPrice] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [period, setPeriod] = useState('');
+  const [category, setCategory] = useState('');
+  const [customCategory, setCustomCategory] = useState('');
+  const [images, setImages] = useState([]);
   const navigation = useNavigation();
   const route = useRoute();
-  const {adType} = route.params;
-  const {user} = useAuth();
-  const userId = user?.id;
-  const {neighborhoodId} = useNeighborhood();
+  const {adType, context} = route.params;
+  const {getItem: getAsyncStorageItem} = useAsyncStorage();
+  const {add: addAd} = useDatabaseData('ads');
 
-  // Log the value of the userId
-  console.log('UserId:', userId);
-
-  const handleSaveAd = async () => {
-    // Create a new ad object
-    const newAd = {
-      type: adType,
-      active: true,
-      date: new Date().toISOString(),
-      price: Number(price),
-      title,
-      publisherId: userId,
-      clickedUserIds: [],
-      photos: [],
-      mainPhotoIndex: 0,
-      description,
-      neighborhoodId,
-    };
-
-    // Save the new ad to the database
-    await dbManager.add('ads', newAd);
-
-    // Navigate back to the Services screen
-    navigation.goBack();
-  };
+  const handleSaveAd = useCallback(async () => {
+    const userData = await getAsyncStorageItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      const friendGroupId = await getAsyncStorageItem('selectedFriendGroupId');
+      const newAd = {
+        type: adType,
+        active: true,
+        date: new Date().toISOString(),
+        price: Number(price),
+        title,
+        publisherId: user.id,
+        clickedUserIds: [],
+        photos: images,
+        mainPhotoIndex: 0,
+        description,
+        period,
+        category: category === 'Otro' ? customCategory : category,
+        ...(adType === 'Vendotodo' || adType === 'Alquicash'
+          ? {neighborhoodId: user.neighborhoodId}
+          : context === 'neighborhood'
+          ? {neighborhoodId: user.neighborhoodId}
+          : {friendGroupId}),
+      };
+      await addAd(newAd);
+      navigation.goBack();
+    }
+  }, [
+    adType,
+    addAd,
+    context,
+    description,
+    getAsyncStorageItem,
+    images,
+    navigation,
+    price,
+    title,
+    period,
+    category,
+    customCategory,
+  ]);
 
   return (
-    <ScrollView>
-      <View style={styles.container}>
-        <Text style={styles.label}>Price:</Text>
-        <TextInput
-          style={styles.input}
-          value={price}
-          onChangeText={setPrice}
-          placeholder="Price"
-          keyboardType="numeric"
-        />
-        <Text style={styles.label}>Title:</Text>
-        <TextInput
-          style={styles.input}
-          value={title}
-          onChangeText={setTitle}
-          placeholder="Title"
-        />
-        <Text style={styles.label}>Description:</Text>
-        <TextInput
-          style={[styles.input, styles.descriptionInput]}
-          value={description}
-          onChangeText={setDescription}
-          placeholder="Description"
-          multiline
-        />
-        <TouchableOpacity style={styles.saveButton} onPress={handleSaveAd}>
-          <Text style={styles.saveButtonText}>Save Ad</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+    <CustomView type="scrollView">
+      <CustomFormRow title="Title:" value={title} onChangeText={setTitle} />
+      <CustomFormRow
+        title="Description:"
+        value={description}
+        onChangeText={setDescription}
+      />
+      {adType === 'Alquicash' && (
+        <>
+          <CustomFormRow
+            title="Price:"
+            value={price}
+            onChangeText={setPrice}
+            keyboardType="numeric"
+          />
+          <CustomPickerInputRow
+            title="Period:"
+            value={period}
+            onChangeText={setPeriod}
+            items={[
+              {label: 'Days', value: 'Days'},
+              {label: 'Months', value: 'Months'},
+              {label: 'Hours', value: 'Hours'},
+            ]}
+          />
+          <CustomPickerInputRow
+            title="Category:"
+            value={category === 'Otro' ? customCategory : category}
+            onChangeText={category === 'Otro' ? setCustomCategory : () => {}}
+            items={[
+              {label: 'Room', value: 'Room'},
+              {label: 'Vehicle', value: 'Vehicle'},
+              {label: 'Motorcycle', value: 'Motorcycle'},
+              {label: 'Other', value: 'Other'},
+            ]}
+            onValueChange={value => {
+              setCategory(value);
+              if (value !== 'Other') {
+                setCustomCategory('');
+              }
+            }}
+          />
+          {category === 'Other' && (
+            <CustomFormRow
+              title="Custom Category:"
+              value={customCategory}
+              onChangeText={setCustomCategory}
+            />
+          )}
+        </>
+      )}
+      <CustomImagePicker images={images} setImages={setImages} />
+      <CustomButton type="primary" title="Save Ad" onPress={handleSaveAd} />
+    </CustomView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  label: {
-    fontSize: 18,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: 'gray',
-    padding: 8,
-    marginBottom: 16,
-  },
-  descriptionInput: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  saveButton: {
-    backgroundColor: '#4da6ff',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  saveButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});
 
 export default CreateAdScreen;

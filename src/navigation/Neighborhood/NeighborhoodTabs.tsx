@@ -23,7 +23,7 @@ const NeighborhoodTabs = () => (
     <Tab.Screen
       name="Services"
       component={AdStack}
-      initialParams={{adType: 'Services'}}
+      initialParams={{adType: 'Services', context: 'neighborhood'}}
     />
     <Tab.Screen name="PasanakusScreen" component={PasanakusScreen} />
   </Tab.Navigator>

@@ -1,5 +1,6 @@
+// src/screens/Auth/LoginScreen.tsx
 import React, {useState} from 'react';
-import {Button, StyleSheet, Text, TextInput, View} from 'react-native';
+import {CustomButton, CustomFormRow, CustomView} from '../../components';
 import {useAuth} from '../../hooks/useAuth';
 
 const LoginScreen = () => {
@@ -19,35 +20,16 @@ const LoginScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>WhatsApp Number:</Text>
-      <TextInput
-        style={styles.input}
+    <CustomView type="screen">
+      <CustomFormRow
+        title="WhatsApp Number:"
         value={whatsAppNumber}
         onChangeText={setWhatsAppNumber}
-        keyboardType="phone-pad"
       />
-      <Button title="Login" onPress={handleLogin} />
-      {error && <Text>{error}</Text>}
-    </View>
+      <CustomButton type="primary" title="Login" onPress={handleLogin} />
+      {error && <CustomText type="normal">{error}</CustomText>}
+    </CustomView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  label: {
-    fontSize: 18,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: 'gray',
-    padding: 8,
-    marginBottom: 16,
-  },
-});
 
 export default LoginScreen;

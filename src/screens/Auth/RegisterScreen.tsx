@@ -1,5 +1,12 @@
+// src/screens/Auth/RegisterScreen.tsx
 import React, {useState} from 'react';
-import {Button, StyleSheet, Switch, Text, TextInput, View} from 'react-native';
+import {
+  CustomButton,
+  CustomFormRow,
+  CustomSwitch,
+  CustomText,
+  CustomView,
+} from '../../components';
 import {useAuth} from '../../hooks/useAuth';
 
 const RegisterScreen = () => {
@@ -15,50 +22,25 @@ const RegisterScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Full Name:</Text>
-      <TextInput
-        style={styles.input}
+    <CustomView type="screen">
+      <CustomFormRow
+        title="Full Name:"
         value={fullName}
         onChangeText={setFullName}
       />
-      <Text style={styles.label}>WhatsApp Number:</Text>
-      <TextInput
-        style={styles.input}
+      <CustomFormRow
+        title="WhatsApp Number:"
         value={whatsAppNumber}
         onChangeText={setWhatsAppNumber}
-        keyboardType="phone-pad"
       />
-      <View style={styles.switchContainer}>
-        <Text style={styles.label}>Is Admin:</Text>
-        <Switch value={isAdmin} onValueChange={setIsAdmin} />
-      </View>
-      <Button title="Register" onPress={handleRegister} />
-      {error && <Text>{error}</Text>}
-    </View>
+      <CustomView>
+        <CustomText type="normal">Is Admin:</CustomText>
+        <CustomSwitch value={isAdmin} onValueChange={setIsAdmin} />
+      </CustomView>
+      <CustomButton type="primary" title="Register" onPress={handleRegister} />
+      {error && <CustomText type="normal">{error}</CustomText>}
+    </CustomView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  label: {
-    fontSize: 18,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: 'gray',
-    padding: 8,
-    marginBottom: 16,
-  },
-  switchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-});
 
 export default RegisterScreen;

@@ -1,26 +1,40 @@
 // src/screens/Neighborhood/AlquicashScreen.tsx
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
-import {FlatList, Text, TouchableOpacity} from 'react-native';
-import {useNeighborhood} from '../../hooks/useNeighborhood';
-import dbManager from '../../interfaces/DatabaseManager';
+import {
+  CustomButton,
+  CustomFlatList,
+  CustomText,
+  CustomView,
+} from '../../components';
+import {useAsyncStorage} from '../../hooks/useAsyncStorage';
+import useDatabaseData from '../../hooks/useDatabaseData';
 
 const AlquicashScreen = () => {
   const [ads, setAds] = useState([]);
-  const {neighborhoodId} = useNeighborhood();
+  const navigation = useNavigation();
+  const {getItem: getAsyncStorageItem} = useAsyncStorage();
+  const {query: queryAds} = useDatabaseData('ads');
 
   const fetchAds = useCallback(async () => {
-    // Get all ads from the database
-    const data = await dbManager.getAll('ads');
+    // Get the user data from local storage
+    const userData = await getAsyncStorageItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
 
-    // Filter ads to show only Alquicash ads for the selected neighborhood
-    const filteredAds = data.filter(
-      ad => ad.type === 'Alquicash' && ad.neighborhoodId === neighborhoodId,
-    );
+      // Get Alquicash ads for the selected neighborhood from the database
+      const data = await queryAds({
+        type: 'Alquicash',
+        neighborhoodId: user.neighborhoodId,
+      });
 
-    // Update state with the filtered ads
-    setAds(filteredAds);
-  }, [neighborhoodId]);
+      // Log the value of data to the console
+      console.log('AlquicashScreen fetchAds data:', data);
+
+      // Update state with the fetched ads
+      setAds(data);
+    }
+  }, [getAsyncStorageItem, queryAds]);
 
   useFocusEffect(
     useCallback(() => {
@@ -28,16 +42,34 @@ const AlquicashScreen = () => {
     }, [fetchAds]),
   );
 
+  const handleCreateAd = () => {
+    // Navigate to the CreateAdScreen
+    navigation.navigate('CreateAdScreen', {adType: 'Alquicash'});
+  };
+
+  const handleSelectAd = (ad: any) => {
+    console.log('AlquicashScreen handleSelectAd ad:', ad);
+    // Navigate to the AdDetailScreen with the selected ad as a navigation parameter
+    navigation.navigate('AdDetailsScreen', {ad});
+  };
+
   return (
-    <FlatList
-      data={ads}
-      renderItem={({item}) => (
-        <TouchableOpacity>
-          <Text>{item.title}</Text>
-        </TouchableOpacity>
-      )}
-      keyExtractor={item => item.id}
-    />
+    <CustomView type="screen">
+      <CustomFlatList
+        type="adListItem"
+        data={ads}
+        renderItem={({item}) => (
+          <CustomText type="normal">{item.title}</CustomText>
+        )}
+        keyExtractor={item => item.id}
+        onPressItem={handleSelectAd}
+      />
+      <CustomButton
+        type="primary"
+        title="Create new ad"
+        onPress={handleCreateAd}
+      />
+    </CustomView>
   );
 };
 

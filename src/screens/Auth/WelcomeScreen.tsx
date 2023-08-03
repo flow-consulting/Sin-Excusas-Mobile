@@ -1,23 +1,33 @@
 // src/screens/Auth/WelcomeScreen.tsx
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
-import {Button, Text, View} from 'react-native';
+import {CustomButton, CustomText, CustomView} from '../../components';
 
 const WelcomeScreen = () => {
   const navigation = useNavigation();
 
+  console.log('WelcomeScreen.tsx', 'WelcomeScreen', 'navigation', navigation);
+
+  const handleRegisterPress = () => {
+    console.log('WelcomeScreen.tsx', 'handleRegisterPress');
+    navigation.navigate('RegisterScreen');
+  };
+
+  const handleLoginPress = () => {
+    console.log('WelcomeScreen.tsx', 'handleLoginPress');
+    navigation.navigate('LoginScreen');
+  };
+
   return (
-    <View>
-      <Text>Welcome to the app!</Text>
-      <Button
+    <CustomView type="screen">
+      <CustomText type="normal">Welcome to the app!</CustomText>
+      <CustomButton
+        type="primary"
         title="Register"
-        onPress={() => navigation.navigate('RegisterScreen')}
+        onPress={handleRegisterPress}
       />
-      <Button
-        title="Login"
-        onPress={() => navigation.navigate('LoginScreen')}
-      />
-    </View>
+      <CustomButton type="secondary" title="Login" onPress={handleLoginPress} />
+    </CustomView>
   );
 };
 

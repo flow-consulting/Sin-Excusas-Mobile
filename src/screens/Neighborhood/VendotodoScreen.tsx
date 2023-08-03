@@ -1,27 +1,40 @@
 // src/screens/Neighborhood/VendotodoScreen.tsx
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
-import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {useNeighborhood} from '../../hooks/useNeighborhood';
-import dbManager from '../../interfaces/DatabaseManager';
+import {
+  CustomButton,
+  CustomFlatList,
+  CustomText,
+  CustomView,
+} from '../../components';
+import {useAsyncStorage} from '../../hooks/useAsyncStorage';
+import useDatabaseData from '../../hooks/useDatabaseData';
 
 const VendotodoScreen = () => {
   const [ads, setAds] = useState([]);
-  const {neighborhoodId} = useNeighborhood();
   const navigation = useNavigation();
+  const {getItem: getAsyncStorageItem} = useAsyncStorage();
+  const {query: queryAds} = useDatabaseData('ads');
 
   const fetchAds = useCallback(async () => {
-    // Get all ads from the database
-    const data = await dbManager.getAll('ads');
+    // Get the user data from local storage
+    const userData = await getAsyncStorageItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
 
-    // Filter ads to show only Vendotodo ads for the selected neighborhood
-    const filteredAds = data.filter(
-      ad => ad.type === 'Vendotodo' && ad.neighborhoodId === neighborhoodId,
-    );
+      // Get Vendotodo ads for the selected neighborhood from the database
+      const data = await queryAds({
+        type: 'Vendotodo',
+        neighborhoodId: user.neighborhoodId,
+      });
 
-    // Update state with the filtered ads
-    setAds(filteredAds);
-  }, [neighborhoodId]);
+      // Log the value of data to the console
+      console.log('VendotodoScreen fetchAds data:', data);
+
+      // Update state with the fetched ads
+      setAds(data);
+    }
+  }, [getAsyncStorageItem, queryAds]);
 
   useFocusEffect(
     useCallback(() => {
@@ -34,44 +47,30 @@ const VendotodoScreen = () => {
     navigation.navigate('CreateAdScreen', {adType: 'Vendotodo'});
   };
 
+  const handleSelectAd = (ad: any) => {
+    console.log('Vendotodo handleSelectAd ad:', ad);
+    // Navigate to the AdDetailScreen with the selected ad as a navigation parameter
+    navigation.navigate('AdDetailsScreen', {ad});
+  };
+
   return (
-    <View style={styles.container}>
-      <FlatList
+    <CustomView type="screen">
+      <CustomFlatList
+        type="adListItem"
         data={ads}
         renderItem={({item}) => (
-          <TouchableOpacity>
-            <Text style={styles.adTitle}>{item.title}</Text>
-          </TouchableOpacity>
+          <CustomText type="normal">{item.title}</CustomText>
         )}
         keyExtractor={item => item.id}
+        onPressItem={handleSelectAd}
       />
-      <TouchableOpacity style={styles.createButton} onPress={handleCreateAd}>
-        <Text style={styles.createButtonText}>Create new ad</Text>
-      </TouchableOpacity>
-    </View>
+      <CustomButton
+        type="primary"
+        title="Create new ad"
+        onPress={handleCreateAd}
+      />
+    </CustomView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
-  adTitle: {
-    fontSize: 18,
-    marginBottom: 8,
-  },
-  createButton: {
-    backgroundColor: '#4da6ff',
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  createButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});
 
 export default VendotodoScreen;

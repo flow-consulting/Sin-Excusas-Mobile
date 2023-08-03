@@ -10,7 +10,11 @@ const Tab = createBottomTabNavigator();
 const FriendGroupsTabs = () => (
   <Tab.Navigator>
     <Tab.Screen name="FriendGroupsScreen" component={FriendGroupsScreen} />
-    <Tab.Screen name="AdStack" component={AdStack} />
+    <Tab.Screen
+      name="AdStack"
+      component={AdStack}
+      initialParams={{adType: 'Services', context: 'friendGroup'}}
+    />
     <Tab.Screen name="PasanakusScreen" component={PasanakusScreen} />
   </Tab.Navigator>
 );

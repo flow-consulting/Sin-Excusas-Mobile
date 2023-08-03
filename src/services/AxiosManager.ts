@@ -1,4 +1,3 @@
-
 // src/services/AxiosManager.ts
 import axios from 'axios';
 import { generateId } from './../utils/IdManager'; // Make sure to use the correct path to the file
@@ -88,5 +87,28 @@ export class AxiosManager<T> implements DatabaseManager<T> {
 
     // Return the generated identifier
     return id;
+  }
+
+    async query(collectionName: string, query: object) {
+    try {
+      // Convert the query object to a query string
+      const queryString = Object.entries(query)
+        .map(([key, value]) => `${key}=${value}`)
+        .join('&');
+
+      // Log the request
+      console.log(`GET ${baseURL}/${collectionName}/query?${queryString}`);
+
+      // Implementation to query documents from a collection on your backend server using axios
+      const response = await axios.get(`${baseURL}/${collectionName}/query?${queryString}`);
+
+      // Log the response
+      console.log(response);
+
+      return response.data;
+    } catch (error) {
+      // Log the error
+      console.error(error);
+    }
   }
 }
